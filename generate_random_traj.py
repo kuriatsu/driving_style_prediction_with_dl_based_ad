@@ -227,20 +227,24 @@ def run(config, goal, ob, fix_trajectory=True, show_anim=True):
 
 def main():
     datas = []
-    iteration = 100 
+    iteration = 100 # data collection in each parameter 
     goal = np.array([14, 0])
     ob = np.matrix([[6.0, 0.0]])
+    fix_trajectory = True # True: select same id of trajectory in each time step, False: sample id from distribution in each time step  
+    show_anim = False
 
-    ## data collection with each parameters
+    ## parameter of truncated gaussian distribution
     mu_list = [50, 45, 55, 40, 60]
     sd_list = [1.0, 2.0, 5.0, 10.0]
+
+    ## data collection with each parameters
     for mu in mu_list:
         for sd in sd_list:
             config = Config()
             config.trajectory_mu = mu
             config.trajectory_sd = sd 
             for _ in range(iteration):
-                traj = run(config, goal, ob, True, False)
+                traj = run(config, goal, ob, fix_trajectory, show_anim)
                 is_collision = check_collision(traj, ob, config)
 
                 data = {"traj_mu": mu,
@@ -250,6 +254,7 @@ def main():
                         }
                 datas.append(data)
 
+    ## save data
     with open("data_fix.pickle", "wb") as f:
         pickle.dump(datas, f)
         print("saved")
