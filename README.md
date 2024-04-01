@@ -1,7 +1,7 @@
 # The code for experiment
 
 ## generate_random_traj.py
-Generate uni-cycle vehicle trajectory and collect data.
+Generate uni-cycle vehicle trajectory with a dynamic window approach
 
 ### run
 ```bash
