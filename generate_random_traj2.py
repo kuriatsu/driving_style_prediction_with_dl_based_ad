@@ -29,7 +29,6 @@ class Config():
         self.obstacle_cost_gain = 0.5
 
         self.robot_radius = 0.5  # [m]
-        self.obs_radius = 1.0  # [m]
         self.goal_radius = 1.0
 
         self.yawrate_num = 100 # rollout candidate number
@@ -167,8 +166,7 @@ def check_collision(traj, ob, config):
             ## distance to obstacle
             r = math.sqrt(dx**2 + dy**2)
 
-            if r <= config.obs_radius + config.robot_radius:
-                print("collide")
+            if r <= config.robot_radius:
                 return True
             
     ## collision free
@@ -210,16 +208,11 @@ def run(config, goal, ob, fix_trajectory=True, show_anim=True):
             config.trajectory_index = int(truncnorm.rvs((0 - mu)/sd, (config.yawrate_num-mu)/sd, loc=mu, scale=sd))
 
         if show_anim:
-            ## trajectory plot
             plt.plot(ltraj[:, 0], ltraj[:, 1], "-g")
-            ## vehicle plot
-            plt.plot(x[0], x[1], "or", ms=config.robot_radius*60)
-            plot_arrow(x[0], x[1], x[2])
-            ## goal plot
+            plt.plot(x[0], x[1], "xr")
             plt.plot(goal[0], goal[1], "xb")
-            ## obstacle plot
-            plt.plot(ob[:, 0], ob[:, 1] , "ok", ms=config.obs_radius*60)
-
+            plt.plot(ob[:, 0], ob[:, 1] , "ok")
+            plot_arrow(x[0], x[1], x[2])
             plt.xlim(0.0, 14.0)
             plt.ylim(-4.0, 4.0)
             plt.grid(True)
@@ -234,24 +227,20 @@ def run(config, goal, ob, fix_trajectory=True, show_anim=True):
 
 def main():
     datas = []
-    iteration = 100 # data collection in each parameter 
+    iteration = 100 
     goal = np.array([14, 0])
-    ob = np.matrix([[8.0, 0.0]])
-    fix_trajectory = False # True: select same id of trajectory in each time step, False: sample id from distribution in each time step  
-    show_anim = False
-
-    ## parameter of truncated gaussian distribution
-    mu_list = [50, 45, 55, 40, 60]
-    sd_list = [1.0, 2.0, 5.0, 10.0, 15.0, 20.0, 30.0, 40.0, 50.0]
+    ob = np.matrix([[6.0, 0.0]])
 
     ## data collection with each parameters
+    mu_list = [50, 45, 55, 40, 60]
+    sd_list = [1.0, 2.0, 5.0, 10.0, 15.0, 20.0, 30.0]
     for mu in mu_list:
         for sd in sd_list:
             config = Config()
             config.trajectory_mu = mu
             config.trajectory_sd = sd 
             for _ in range(iteration):
-                traj = run(config, goal, ob, fix_trajectory, show_anim)
+                traj = run(config, goal, ob, False, False)
                 is_collision = check_collision(traj, ob, config)
 
                 data = {"traj_mu": mu,
@@ -259,10 +248,10 @@ def main():
                         "traj": traj,
                         "collision": is_collision
                         }
+
                 datas.append(data)
 
-    ## save data
-    with open("data.pickle", "wb") as f:
+    with open("data_rand.pickle", "wb") as f:
         pickle.dump(datas, f)
         print("saved")
 

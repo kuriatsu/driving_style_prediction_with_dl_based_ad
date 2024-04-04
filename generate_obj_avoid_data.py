@@ -27,7 +27,7 @@ class Config():
         self.v_reso = 0.005  # [m/s]
         self.yawrate_reso = 0.5 * math.pi / 180.0  # [rad/s]
         self.v_num = 5 
-        self.yawrate_num = 100 
+        self.yawrate_num = 10 
         self.dt = 0.1  # [s]
         self.predict_time = 3.0  # [s]
 
@@ -125,35 +125,21 @@ def calc_final_input(x, u, dw, config, goal, ob):
     min_u[0] = 0.0
     best_traj = np.array([x])
 
-    # for v in np.linspace(dw[0], dw[1], config.v_num):
-    #     for y in np.linspace(dw[2], dw[3], config.yawrate_num):
-    #         traj = calc_trajectory(xinit, v, y, config)
-    #         
-    #         ## cost
-    #         plt.plot(traj[:, 0], traj[:, 1], "-k", alpha=0.2)
-    #         to_goal_cost = calc_to_goal_cost(traj, goal, config)
-    #         speed_cost = config.speed_cost_gain * (config.max_speed - traj[-1, 3])
-    #         ob_cost = calc_obstacle_cost(traj, ob, config)
-    #         final_cost = to_goal_cost + speed_cost + ob_cost
+    for v in np.linspace(dw[0], dw[1], config.v_num):
+        for y in np.linspace(dw[2], dw[3], config.yawrate_num):
+            traj = calc_trajectory(xinit, v, y, config)
+            
+            ## cost
+            plt.plot(traj[:, 0], traj[:, 1], "-k", alpha=0.2)
+            to_goal_cost = calc_to_goal_cost(traj, goal, config)
+            speed_cost = config.speed_cost_gain * (config.max_speed - traj[-1, 3])
+            ob_cost = calc_obstacle_cost(traj, ob, config)
+            final_cost = to_goal_cost + speed_cost + ob_cost
 
-    #         if min_cost >= final_cost:
-    #             min_cost = final_cost
-    #             min_u = [v, y]
-    #             best_traj = traj
-    v = dw[1] 
-    trajs = []
-    us = []
-    for y in np.linspace(dw[2], dw[3], config.yawrate_num):
-        traj = calc_trajectory(xinit, v, y, config)
-        # plt.plot(traj[:, 0], traj[:, 1], "-k", alpha=0.2)
-        trajs.append(traj)
-        us.append([v, y])
-
-    mu = config.trajectory_mu
-    sd = config.trajectory_sd
-    index = int(truncnorm.rvs((0 - mu)/sd, (config.yawrate_num-mu)/sd, loc=mu, scale=sd))
-    min_u = us[index]
-    best_traj = trajs[index]
+            if min_cost >= final_cost:
+                min_cost = final_cost
+                min_u = [v, y]
+                best_traj = traj
 
     return min_u, best_traj
 
