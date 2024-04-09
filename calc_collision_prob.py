@@ -6,6 +6,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 import sys
 import pandas as pd
+from mpl_toolkits.mplot3d import Axes3D
 
 def main():
     file = sys.argv[1]
@@ -46,7 +47,6 @@ def main():
     for (i, j), z in np.ndenumerate(mat):
         axes.text(j, i, '{:0.1f}'.format(z), ha='center', va='center')
 
-    print(mat)
     axes.matshow(mat)
     axes.set_yticklabels(df.sort_values(by=["sd"]).sd.drop_duplicates())
     axes.set_xticklabels(df.sort_values(by=["mu"]).mu.drop_duplicates())
@@ -60,7 +60,20 @@ def main():
     sd = df["sd"].sum() / len(df)
     buf = pd.DataFrame(index=["general"], data=[[mu, sd, total_collision, total_trial, total_collision_prob]], columns=df.columns)
     df = pd.concat([df, buf])
-    print(df)
 
+    fig = plt.figure()
+    axes = fig.gca(projection="3d")
+    # axes.scatter(df.mu.iloc[:], df.sd.iloc[:], df.collision_prob.iloc[:])
+    target_df = df[df.index!="general"]
+    print(target_df)
+    axes.scatter(target_df["mu"].tolist(), target_df["sd"].tolist(), target_df["collision_prob"].tolist(), label="hi")
+    target_df = df[df.index=="general"]
+    axes.scatter(target_df["mu"].tolist(), target_df["sd"].tolist(), target_df["collision_prob"].tolist(), c="r", label="general")
+    plt.legend()
+    axes.set_xlabel("mu")
+    axes.set_ylabel("sigma")
+    axes.set_zlabel("collision prob")
+    plt.show()
+    
 if __name__ == "__main__":
     main()

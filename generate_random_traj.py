@@ -128,15 +128,15 @@ def calc_final_input(x, u, dw, config, goal, ob):
     min_u = us[index]
     best_traj = trajs[index]
 
-    return min_u, best_traj
+    return min_u, best_traj, index
 
 
 def dwa_control(x, u, config, goal, ob):
     """output dynamic window
     """
     dw = calc_dynamic_window(x, config)
-    u, traj = calc_final_input(x, u, dw, config, goal, ob)
-    return u, traj
+    u, traj, traj_index = calc_final_input(x, u, dw, config, goal, ob)
+    return u, traj, traj_index
 
 def plot_arrow(x, y, yaw, length=0.5, width=0.1):
     """draw evo vehicle heading pose
@@ -185,10 +185,10 @@ def run(config, goal, ob, fix_trajectory=True, show_anim=True):
     ~return~
 
     """
-    ## initial state [x, y, yaw, v, omega]
+    ## initial state [x, y, yaw, v, omega, index]
     x = np.array([0.0, 0.0, 0.0, 0.0, 0.0])
     u = np.array([0.0, 0.0])
-    traj = np.array(x)
+    traj = np.array([0.0, 0.0, 0.0, 0.0, 0.0, 0.0])
 
     ## set trajectory index before start
     if fix_trajectory:
@@ -198,9 +198,10 @@ def run(config, goal, ob, fix_trajectory=True, show_anim=True):
         config.trajectory_index = int(truncnorm.rvs((0 - mu)/sd, (config.yawrate_num-mu)/sd, loc=mu, scale=sd))
 
     for i in range(80):
-        u, ltraj = dwa_control(x, u, config, goal, ob)
+        u, ltraj, ltraj_index = dwa_control(x, u, config, goal, ob)
         x = motion(x, u, config.dt)
-        traj = np.vstack((traj, x))
+        x1 = np.append(x, ltraj_index)
+        traj = np.vstack((traj, x1))
 
         ## randomly selelct trajectory at each time step 
         if not fix_trajectory:
