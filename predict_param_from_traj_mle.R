@@ -4,14 +4,16 @@ tnorm.mle <- function(x, a = -Inf, b = Inf) {
   
   n <- length(x)
   ab <- c(a, b)
-  init <- c(x[1], log(sd(x)))
+  init <- c(x[1], sd(x))
+  # init <- c(x[1], log(sd(x)))
   
   if (is.finite(a)) {
     if (is.finite(b)) {
       # two-sided truncation
       f <- function(params) {
         mu <- params[1]
-        sigma <- exp(params[2])
+        sigma <- params[2]
+        # sigma <- exp(params[2])
         n*log(diff(pnorm(ab, mu, sigma))) - sum(dnorm(x, mu, sigma, TRUE))
       }
     } else {
@@ -38,7 +40,8 @@ tnorm.mle <- function(x, a = -Inf, b = Inf) {
   
   # solve for mu and sigma
   params <- optim(init, f)$par
-  c(mu = params[1], sigma = exp(params[2]))
+  c(mu = params[1], sigma = params[2])
+  # c(mu = params[1], sigma = exp(params[2]))
 }
 
 require("reticulate")
